@@ -1,0 +1,6 @@
+{
+    "terminal.integrated.fontSize": 14,
+    "files.associations": {
+        "__config": "c"
+    }
+}
