@@ -1,6 +1,6 @@
 ## rsnyc
 upload:     rsync -rlptzv --progress --delete --exclude=.git . djh@10.29.0.222:~/Code/CSAPP
-download:   rsync -rlptzv --progress --delete --exclude=.git djh@10.29.0.222:~/Code/CSAPP .
+download:   rsync -rlptzv --progress --delete --exclude=.git djh@10.29.0.222:~/Code/CSAPP/ .
 
 ## git
 git config oh-my-zsh.hide-info 1

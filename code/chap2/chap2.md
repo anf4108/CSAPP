@@ -118,23 +118,24 @@ $\displaystyle b= \sum_{i=-n}^m 2^i \times b_i$
 
 #### IEEE浮点表示
 $V=(-1)^s\times M\times 2^E$
-s:  sign(符号)  1位
-M:  significand(尾数)  k位
-E:  exponent(阶码)  n位
+* s:  sign(符号)  1位
+* M:  significand(尾数)  k位
+* E:  exponent(阶码)  n位
 
 ``s  exp  frac``
 $s \quad e_{k-1}\cdots e_1e_0\quad f_{n-1}\cdots f_1f_0$
+$Bias=2^{k-1}-1$ 
+$e=e_{k-1}\cdots e_1e_0\quad f=0.f_{n-1}\cdots f_1f_0  \quad 
+0\leq f<1 \quad$
+``````
+float:   k=8bits  n=23bits  Bias=127
+double:  k=11bits n=52bits  Bias=2047
+``````
 
-float:   k=8bits  n=23bits
-double:  k=11bits n=52bits
-
-$Bias=2^{k-1}-1$
 
 **规格化的值**
 `exp != 0, exp != ~0`
-$E=e-Bias \quad M=1+f$ 
-$e=e_{k-1}\cdots e_1e_0\quad$
-$0\leq f<1 \quad f=0.f_{n-1}\cdots f_1f_0$
+$E=e-Bias \quad M=1+f$
 
 **非规格化的值**
 `exp == 0`
