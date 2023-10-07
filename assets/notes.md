@@ -5,6 +5,9 @@ download:   rsync -rlptzv --progress --delete --exclude=.git djh@10.29.0.222:~/C
 ## git
 git config oh-my-zsh.hide-info 1
 
+## man
+man <command> | col -b > <file>
+
 ## docker
 - **pull images**:
 ```

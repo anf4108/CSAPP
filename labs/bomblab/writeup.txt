@@ -1,0 +1,377 @@
+objdump -d bomb.s 
+gdb -nx bomb 
+break explode_bomb 
+
+<phase_1>:
+    x/s 0x402400
+
+<phase_2>:
+    %rsp[]: d1 d2 d3 d4 d5 d6
+
+<read_six_numbers>:
+    %rdi:       <read_line>
+    %rsi:       %rsp
+    %rdx:       %rsp
+    %rcx:       %rsp+0x4
+    %r8:        %rsp+0x8
+    %r9:        %rsp+0xc
+    %rsp:       %rsp+0x10
+    %rsp+0x8:   %rsp+0x14
+    %rsi:       $0x4025c3: "%d %d %d %d %d %d"
+
+    %rbx -----> %rbp
+
+<phase_3>:
+    %rdi:       <read_line>
+    %rsi:       $0x4025cf: "%d %d"
+    %rdx:       %rsp+0x8    d1
+    %rcx:       %rsp+0xc    d2
+
+    d1 <= 7
+    x/8a 0x402470
+    0x402470:       0x400f7c <phase_3+57>   0x400fb9 <phase_3+118>
+    0x402480:       0x400f83 <phase_3+64>   0x400f8a <phase_3+71>
+    0x402490:       0x400f91 <phase_3+78>   0x400f98 <phase_3+85>
+    0x4024a0:       0x400f9f <phase_3+92>   0x400fa6 <phase_3+99>
+
+<phase_4>:
+    %rdi:       <read_line>
+    %rsi:       $0x4025cf: "%d %d"
+    %rdx:       %rsp+0x8    d1
+    %rcx:       %rsp+0xc    d2
+
+    d1 <= 0xe
+    func4(d1, 0, 0xe) == 0
+    d2 == 0
+
+    int func4(int edi, int esi, int edx) {
+        eax = edx;
+        eax -= esi;
+        ecx = eax;
+        ecx >>= 31;
+        eax += ecx;
+        eax >>= 1;
+        ecx = eax + esi;
+        if (ecx <= edi) {
+            eax = 0;
+            if (ecx >= edi) {
+                return eax;
+            }
+            esi = ecx + 1;
+            eax = func4(edi, esi, edx);
+            return 2 * eax + 1;
+        }
+        edx = ecx - 1;
+        eax = func4(edi, esi, edx);
+        return 2 * eax;
+    }
+
+    func(d1, 0, 14) == 0
+    int func4(int edi, int esi, int edx) {
+        eax = edx - esi;
+        ecx = eax >>= 31;
+        eax += ecx;
+        eax >>= 1;
+        ecx = eax + esi;
+        if (ecx == edi) {
+            return 0;
+        } else if (ecx < edi) {
+            eax = func4(edi, ecx + 1, edx);
+            return 2 * eax + 1;
+        } else if (ecx > edi) {
+            eax = func4(edi, esi, ecx - 1);
+            return 2 * eax;
+        }
+    }
+    edi esi edx ecx
+    d1  0   14  7   --> d1 = 7
+    d1  0   6   3   --> d1 = 3
+    d1  0   2   1   --> d1 = 1
+    d1  0   1   0   --> d1 = 0
+
+<phase_5>:
+    %rdi:       <read_line>
+    %rsi:       
+    %rdx:       0x10+%rsp <- 0x4024b0+%cl
+    %rcx:       <read_line>
+
+    %rbx:       <read_line>
+    %rax:       0 <- 0xd9c159c24febd500
+    (%rsp):     %cl
+    0x18(%rsp): 0xd9c159c24febd500
+
+    <string_length> == 6
+
+    for (int rax = 0; rax < 6; rax++) {
+        cl = rbx[rax];
+        dl = cl + 0x4024b0;
+        rsp[0x10 + rax] = dl;
+    }
+
+    rax     rbx     rcx     rdx             rsp[0x10 + rax]
+    0       s       s[0]    s[0]+0x4024b0   s[0]+0x4024b0 
+
+    maduiersnfotvbyl
+    flyers
+    9fe567
+    ionefg             
+
+
+<phase_6>:
+       d[]: d1  d2  d3  d4  d5  d6  
+    %rsp[]: 0   4   8   c   10  14
+    %r14:       %rsp
+    %r13:       %rsp
+    %r12:       0
+    %rbp:       %rsp  
+    %rax:       d1 - 1 <= 5     d1 <= 6
+    %r12:       1
+    %rbx:       1
+    %rax:       rsp[4] != rsp[0]  d1 != d2 
+    %rbx:       2
+    %rax:       rsp[8] != rsp[0]  d1 != d3
+    ...
+    %r13:       %rsp+0x4
+    %rbp:       %rsp+0x4    
+    %rax:       d2 - 1 <= 5     d1 <= 6
+    %r12:       2
+    %rbx:       2
+    %rax:       rsp[8] != rsp[0]  d2 != d3
+    ...
+
+    %rsi:       %rsp+0x18
+    %rax;       %rsp 
+    %rcx:       7
+    %rdx:       7 - d1
+    rsp[0]      7 - d1 
+    %rax;       %rsp+0x4
+    %rcx:       7
+    %rdx:       7 - d2
+    rsp[4]      7 - d2
+    ...
+
+    %rsi:       0
+    %rcx:       rsp[0]
+    if (7 - d1 <= 1)
+    %rdx:       0x6032d0
+    rsp[20+0*2] 0x6032d0
+    %rsi:       4
+    else
+    %rax:       1
+    %rdx:       0x8(0x6032d0)
+
+
+phase_6() {
+    r13 = rsp;
+    rsi = rsp;
+    rsp[] = {d1, d2, d3, d4, d5, d6};
+    r14 = rsp;
+    for (r12 = 0x0; r12 < 6; r12++) {
+        if (r12) {
+            for (rbx = r12; rbx <= 5; rbx++;) {
+                rax = rsp[rbx * 4];
+                if (rax == rsp[0]) explode_bomb();
+            }
+            r13 += 4;
+        }
+        // 401114
+        rbp = r13;   // = rsp
+        rax = rsp[r13] - 1;
+        if (rax > 5) explode_bomb();
+    } 
+    /* d[] is  permutation of length 6 */
+    // 401153
+    rsi = rsp + 18;
+    rax = rsp;
+    rcx = 0x7;
+    rdx = 0x7 - *rax;
+    for (rax = rsp; rax < rsp + 0x18; rax += 4) {
+        *rax = 0x7 - *rax;
+    }
+    /* d[i] = 7 - d[i]; */
+    
+    //   40116f     40119a      
+    for (rsi = 0x0; rsi < 0x18; rsi += 4) {
+        // 401197
+        rcx = rsp[rsi];
+        if (rcx <= 1) {
+            // 401183
+            rdx = 0x6032d0;
+            // 401188
+        } else {
+            // 40119f
+            for (rax = 1, rdx = 0x6032d0; rax != rcx; rax++) {
+                // 401176   
+                rdx = rdx[8];
+            }
+            // 401188
+        }
+        // 401188
+        rsi[0x20+2*rsi] = rdx;
+    }
+    /* rsp[20] : noded1  noded2  noded3  noded4  noded5  noded6 */
+
+    // 4011ab
+    rbx = rsp[0x20];            // rbx[0] == rsp[20]
+    rsi = rsp + 0x50;
+    rcx = rbx;  // rsp[0x20]                // noded1
+    for (rax = rsp + 0x28; rax < rsp + 0x50; rax += 0x8) {
+        if (rax != rsp + 0x28) rcx = rdx;
+        rdx = *rax;     // rsp[0x20+i+8]       noded2
+        *(rcx+0x8) = rdx;                   // noded1 -> noded2 
+    }
+    /* nodedi  -> noded{i+1} */
+
+    // 4011d2
+    rdx[8] = 0;                             // noded6 -> 0
+    for (rbp = 5; rbp; rbp--) {
+        rax = rbx[8];                       // noded2
+        rax = *rax;                         // noded2->v
+        if (rbx[0] < rax) explode_bomb();   // node1->v >= node2->v
+        rbx = rbx[8];                       // node3
+    }
+    /* nodedi->v >= noded{i+1}->v */    
+}   
+    x/64x 0x6032d0          
+                                %rdx                            0x8(%rdx)
+        0x6032d0 <node1>:       0x0000014c      0x00000001      0x006032e0      0x00000000
+        0x6032e0 <node2>:       0x000000a8      0x00000002      0x006032f0      0x00000000
+        0x6032f0 <node3>:       0x0000039c      0x00000003      0x00603300      0x00000000
+        0x603300 <node4>:       0x000002b3      0x00000004      0x00603310      0x00000000
+        0x603310 <node5>:       0x000001dd      0x00000005      0x00603320      0x00000000
+        0x603320 <node6>:       0x000001bb      0x00000006      0x00000000      0x00000000
+
+7-di:   3 4 5 6 1 2
+di:     4 3 2 1 6 5
+
+<phase_defused>
+    0x402622:       "DrEvil"
+                     <strings_not_equal>
+    0x4024f8:       "Curses, you've found the secret phase!"
+    0x402520:       "But finding it and solving it are quite different..."
+
+    $0x402619,%esi
+    $0x603870,%edi
+
+    break *0x400ed6
+    Breakpoint 3, 0x0000000000400ed6 in main (argc=<optimized out>, argv=<optimized out>) at bomb.c:115
+    115     }
+    (gdb) x/s 0x603870
+    0x603870 <input_strings+240>:   "7 0"
+
+<secret_phase>:
+    x/s 0x402619:       "%d %d %s"
+    0x10(%rsp)=DrEvil
+    %edx:       0xa
+    %esi:       0x0
+    %rdi:       <read_line>
+    %rax:       strtol()
+    %rbx:       strtol()
+    %rax:       strtol()-1
+    rax <= 0x3e8
+    %rsi:       %rbx
+    %rdi:       0x6030f0
+    <fun7>
+    %eax == 2
+0x6030f0 %rbx
+fun7(rdi, rsi) {
+    if (rdi == NULL) return -1;
+    edx = *rdi;
+    if (edx <= esi) {
+        // 401220
+        eax = 0;
+        if (edx == esi) {
+            return rax;
+        }
+        rdi = rdi[0x10];
+        rax = fun7(rdi, rsi);
+        eax = 1 + 2 * rax;
+        return rax;
+    }
+    // 401213
+    rdi = rdi[0x8];
+    rax = fun7(rdi, rsi);
+    eax = 2 * eax;
+    return rax;
+}
+
+int fun7(int rdi, int rsi) {
+    if (rdi == NULL) return -1;
+    rdx = *rdi;
+    if (rdx == rsi) {
+        return 0;
+    } else if (rdx < rsi) {
+        return 2 * fun7(*(rdi + 16), rsi) + 1;
+    } else if (rdx > rsi) {
+        return 2 * fun7(*(rdi + 8), rsi);
+    }
+} 
+fun7(0x6030f0, %rbx) == 2
+
+binary tree 
+<n>:    value 
+<n+8>:  lson
+<n+16>: rson
+n1 -> n21 -> n32 -> n43
+
+(gdb) x/1024x 0x6030f0
+0x6030f0 <n1>:          0x24    0x00    0x00    0x00    0x00    0x00    0x00    0x00
+0x6030f8 <n1+8>:        0x10    0x31    0x60    0x00    0x00    0x00    0x00    0x00
+0x603100 <n1+16>:       0x30    0x31    0x60    0x00    0x00    0x00    0x00    0x00
+0x603108:               0x00    0x00    0x00    0x00    0x00    0x00    0x00    0x00
+0x603110 <n21>:         0x08    0x00    0x00    0x00    0x00    0x00    0x00    0x00
+0x603118 <n21+8>:       0x90    0x31    0x60    0x00    0x00    0x00    0x00    0x00
+0x603120 <n21+16>:      0x50    0x31    0x60    0x00    0x00    0x00    0x00    0x00
+0x603128:               0x00    0x00    0x00    0x00    0x00    0x00    0x00    0x00
+0x603130 <n22>:         0x32    0x00    0x00    0x00    0x00    0x00    0x00    0x00
+0x603138 <n22+8>:       0x70    0x31    0x60    0x00    0x00    0x00    0x00    0x00
+0x603140 <n22+16>:      0xb0    0x31    0x60    0x00    0x00    0x00    0x00    0x00
+0x603148:               0x00    0x00    0x00    0x00    0x00    0x00    0x00    0x00
+0x603150 <n32>:         0x16    0x00    0x00    0x00    0x00    0x00    0x00    0x00
+0x603158 <n32+8>:       0x70    0x32    0x60    0x00    0x00    0x00    0x00    0x00
+0x603160 <n32+16>:      0x30    0x32    0x60    0x00    0x00    0x00    0x00    0x00
+0x603168:               0x00    0x00    0x00    0x00    0x00    0x00    0x00    0x00
+0x603170 <n33>:         0x2d    0x00    0x00    0x00    0x00    0x00    0x00    0x00
+0x603178 <n33+8>:       0xd0    0x31    0x60    0x00    0x00    0x00    0x00    0x00
+0x603180 <n33+16>:      0x90    0x32    0x60    0x00    0x00    0x00    0x00    0x00
+0x603188:               0x00    0x00    0x00    0x00    0x00    0x00    0x00    0x00
+0x603190 <n31>:         0x06    0x00    0x00    0x00    0x00    0x00    0x00    0x00
+0x603198 <n31+8>:       0xf0    0x31    0x60    0x00    0x00    0x00    0x00    0x00
+0x6031a0 <n31+16>:      0x50    0x32    0x60    0x00    0x00    0x00    0x00    0x00
+0x6031a8:               0x00    0x00    0x00    0x00    0x00    0x00    0x00    0x00
+0x6031b0 <n34>:         0x6b    0x00    0x00    0x00    0x00    0x00    0x00    0x00
+0x6031b8 <n34+8>:       0x10    0x32    0x60    0x00    0x00    0x00    0x00    0x00
+0x6031c0 <n34+16>:      0xb0    0x32    0x60    0x00    0x00    0x00    0x00    0x00
+0x6031c8:               0x00    0x00    0x00    0x00    0x00    0x00    0x00    0x00
+0x6031d0 <n45>:         0x28    0x00    0x00    0x00    0x00    0x00    0x00    0x00
+0x6031d8 <n45+8>:       0x00    0x00    0x00    0x00    0x00    0x00    0x00    0x00
+0x6031e0 <n45+16>:      0x00    0x00    0x00    0x00    0x00    0x00    0x00    0x00
+0x6031e8:               0x00    0x00    0x00    0x00    0x00    0x00    0x00    0x00
+0x6031f0 <n41>:         0x01    0x00    0x00    0x00    0x00    0x00    0x00    0x00
+0x6031f8 <n41+8>:       0x00    0x00    0x00    0x00    0x00    0x00    0x00    0x00
+0x603200 <n41+16>:      0x00    0x00    0x00    0x00    0x00    0x00    0x00    0x00
+0x603208:               0x00    0x00    0x00    0x00    0x00    0x00    0x00    0x00
+0x603210 <n47>:         0x63    0x00    0x00    0x00    0x00    0x00    0x00    0x00
+0x603218 <n47+8>:       0x00    0x00    0x00    0x00    0x00    0x00    0x00    0x00
+0x603220 <n47+16>:      0x00    0x00    0x00    0x00    0x00    0x00    0x00    0x00
+0x603228:               0x00    0x00    0x00    0x00    0x00    0x00    0x00    0x00
+0x603230 <n44>:         0x23    0x00    0x00    0x00    0x00    0x00    0x00    0x00
+0x603238 <n44+8>:       0x00    0x00    0x00    0x00    0x00    0x00    0x00    0x00
+0x603240 <n44+16>:      0x00    0x00    0x00    0x00    0x00    0x00    0x00    0x00
+0x603248:               0x00    0x00    0x00    0x00    0x00    0x00    0x00    0x00
+0x603250 <n42>:         0x07    0x00    0x00    0x00    0x00    0x00    0x00    0x00
+0x603258 <n42+8>:       0x00    0x00    0x00    0x00    0x00    0x00    0x00    0x00
+0x603260 <n42+16>:      0x00    0x00    0x00    0x00    0x00    0x00    0x00    0x00
+0x603268:               0x00    0x00    0x00    0x00    0x00    0x00    0x00    0x00
+0x603270 <n43>:         0x14    0x00    0x00    0x00    0x00    0x00    0x00    0x00
+0x603278 <n43+8>:       0x00    0x00    0x00    0x00    0x00    0x00    0x00    0x00
+0x603280 <n43+16>:      0x00    0x00    0x00    0x00    0x00    0x00    0x00    0x00
+0x603288:               0x00    0x00    0x00    0x00    0x00    0x00    0x00    0x00
+0x603290 <n46>:         0x2f    0x00    0x00    0x00    0x00    0x00    0x00    0x00
+0x603298 <n46+8>:       0x00    0x00    0x00    0x00    0x00    0x00    0x00    0x00
+0x6032a0 <n46+16>:      0x00    0x00    0x00    0x00    0x00    0x00    0x00    0x00
+0x6032a8:               0x00    0x00    0x00    0x00    0x00    0x00    0x00    0x00
+0x6032b0 <n48>:         0xe9    0x03    0x00    0x00    0x00    0x00    0x00    0x00
+0x6032b8 <n48+8>:       0x00    0x00    0x00    0x00    0x00    0x00    0x00    0x00
+0x6032c0 <n48+16>:      0x00    0x00    0x00    0x00    0x00    0x00    0x00    0x00
+0x6032c8:               0x00    0x00    0x00    0x00    0x00    0x00    0x00    0x00
