@@ -1,6 +1,11 @@
 {
     "terminal.integrated.fontSize": 14,
     "files.associations": {
-        "__config": "c"
-    }
+        "README": "plaintext",
+        "__config": "c",
+        "stdio.h": "c",
+        "cdefs.h": "c",
+        "ios": "cpp"
+    },
+    "C_Cpp.errorSquiggles": "disabled"
 }

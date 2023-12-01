@@ -1,5 +1,8 @@
 .DS_Store
+.gitignore
 assets/深入理解计算机系统.pdf
 ICS/reference
 .zshrc
 test
+ICS/hw
+ICS/labs
